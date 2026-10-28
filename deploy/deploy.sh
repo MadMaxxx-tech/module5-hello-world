@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 : "${VERSION:?VERSION is required}"
 : "${NEXUS_URL:?NEXUS_URL is required}"
 : "${NEXUS_USER:?NEXUS_USER is required}"
@@ -17,7 +19,7 @@ BACKUP_BINARY="${APP_DIR}/hello-world_bkp"
 echo "Deploying hello-world version ${VERSION}"
 
 # Устанавливаем systemd unit
-sudo cp deploy/hello-world.service /etc/systemd/system/hello-world.service
+sudo cp "${SCRIPT_DIR}/hello-world.service" /etc/systemd/system/hello-world.service
 
 # Скачиваем архив из Nexus
 curl -f -u "${NEXUS_USER}:${NEXUS_PASSWORD}" \
