@@ -1,5 +1,6 @@
 # Собранные бинарники
 hello-world*
+!deploy/hello-world.service
 
 # Локальные файлы Go
 *.test
@@ -7,3 +8,19 @@ hello-world*
 
 # Системные файлы
 .DS_Store
+
+# SSH private keys
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+*_ed25519
+*_rsa
+*.pem
+
+# Public keys можно хранить, но обычно они не нужны в этом репозитории
+# *.pub
+
+# Локальные секреты и окружение
+.env
+.env.*

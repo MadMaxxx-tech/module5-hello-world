@@ -60,3 +60,65 @@ jobs:
           curl -f -u "${NEXUS_USER}:${NEXUS_PASSWORD}" \
             --upload-file "hello-world_${VERSION}.tar.gz" \
             "${{ vars.NEXUS_URL }}/repository/${{ vars.NEXUS_REPO }}/${VERSION}/hello-world_${VERSION}.tar.gz"
+
+  deploy:
+    name: Deploy hello-world to worker
+    runs-on: ubuntu-latest
+    needs: release
+    environment: production
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install OpenSSH client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openssh-client
+
+      - name: Configure SSH key
+        env:
+          SSH_PRIVATE_KEY_B64: ${{ secrets.SSH_PRIVATE_KEY_B64 }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "${SSH_PRIVATE_KEY_B64}" | base64 -d > ~/.ssh/hello_world_ci_ed25519
+          chmod 600 ~/.ssh/hello_world_ci_ed25519
+
+      - name: Copy deployment files to worker
+        env:
+          VM_HOST: ${{ vars.VM_HOST }}
+          VM_USER: ${{ vars.VM_USER }}
+        run: |
+          scp -i ~/.ssh/hello_world_ci_ed25519 \
+            -o StrictHostKeyChecking=accept-new \
+            deploy/hello-world.service \
+            "${VM_USER}@${VM_HOST}:/home/${VM_USER}/hello-world.service"
+
+          scp -i ~/.ssh/hello_world_ci_ed25519 \
+            -o StrictHostKeyChecking=accept-new \
+            deploy/deploy.sh \
+            "${VM_USER}@${VM_HOST}:/home/${VM_USER}/deploy.sh"
+
+      - name: Deploy application
+        env:
+          VERSION: ${{ env.VERSION }}
+          NEXUS_URL: ${{ vars.NEXUS_URL }}
+          NEXUS_REPO: ${{ vars.NEXUS_REPO }}
+          NEXUS_USER: ${{ secrets.NEXUS_USER }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+          VM_HOST: ${{ vars.VM_HOST }}
+          VM_USER: ${{ vars.VM_USER }}
+        run: |
+          ssh -i ~/.ssh/hello_world_ci_ed25519 \
+            -o StrictHostKeyChecking=accept-new \
+            "${VM_USER}@${VM_HOST}" \
+            "chmod +x /home/${VM_USER}/deploy.sh && \
+             export VERSION='${VERSION}' \
+                    NEXUS_URL='${NEXUS_URL}' \
+                    NEXUS_USER='${NEXUS_USER}' \
+                    NEXUS_PASSWORD='${NEXUS_PASSWORD}' \
+                    NEXUS_REPO='${NEXUS_REPO}'; \
+             /home/${VM_USER}/deploy.sh"
+
+      - name: Verify application
+        run: |
+          curl -fsS http://${{ vars.VM_HOST }}:8080/

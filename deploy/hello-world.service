@@ -1,0 +1,14 @@
+[Unit]
+Description=Hello World Go Service
+After=network.target
+
+[Service]
+User=madmax
+Group=madmax
+Restart=always
+RestartSec=5
+ExecStart=/opt/hello-world/hello-world
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target
