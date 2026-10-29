@@ -26,15 +26,11 @@ jobs:
           go build -ldflags "-X main.buildVersion=${VERSION}" \
             -o hello-world_${VERSION} .
 
-      - name: Create archive
-        run: |
-          tar -czf hello-world_${VERSION}.tar.gz hello-world_${VERSION}
-
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: hello-world_${{ env.VERSION }}
-          path: hello-world_${{ env.VERSION }}.tar.gz
+          path: hello-world_${{ env.VERSION }}
 
   release:
     name: Upload artifact to Nexus
@@ -46,6 +42,10 @@ jobs:
         with:
           name: hello-world_${{ env.VERSION }}
           path: .
+
+      - name: Create archive
+        run: |
+          tar -czf hello-world_${VERSION}.tar.gz hello-world_${VERSION}
 
       - name: Install curl
         run: |
