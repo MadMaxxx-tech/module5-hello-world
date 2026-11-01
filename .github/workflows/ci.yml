@@ -81,7 +81,7 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           echo "${SSH_PRIVATE_KEY_B64}" | base64 -d > ~/.ssh/github-keys/github_worker_ed25519
-          chmod 600 ~/.ssh/github-keys/github_worker_ed25519
+          chmod 600 ~/.ssh/github_worker_ed25519
 
       - name: Copy deployment files to worker
         env:
