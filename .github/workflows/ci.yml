@@ -80,20 +80,20 @@ jobs:
           SSH_PRIVATE_KEY_B64: ${{ secrets.SSH_PRIVATE_KEY_B64 }}
         run: |
           mkdir -p ~/.ssh
-          echo "${SSH_PRIVATE_KEY_B64}" | base64 -d > ~/.ssh/hello_world_ci_ed25519
-          chmod 600 ~/.ssh/hello_world_ci_ed25519
+          echo "${SSH_PRIVATE_KEY_B64}" | base64 -d > ~/.ssh/github-keys/github_worker_ed25519
+          chmod 600 ~/.ssh/github-keys/github_worker_ed25519
 
       - name: Copy deployment files to worker
         env:
           VM_HOST: ${{ vars.VM_HOST }}
           VM_USER: ${{ vars.VM_USER }}
         run: |
-          scp -i ~/.ssh/hello_world_ci_ed25519 \
+          scp -i ~/.ssh/github-keys/github_worker_ed25519 \
             -o StrictHostKeyChecking=accept-new \
             deploy/hello-world.service \
             "${VM_USER}@${VM_HOST}:/home/${VM_USER}/hello-world.service"
 
-          scp -i ~/.ssh/hello_world_ci_ed25519 \
+          scp -i ~/.ssh/github-keys/github_worker_ed25519 \
             -o StrictHostKeyChecking=accept-new \
             deploy/deploy.sh \
             "${VM_USER}@${VM_HOST}:/home/${VM_USER}/deploy.sh"
@@ -108,7 +108,7 @@ jobs:
           VM_HOST: ${{ vars.VM_HOST }}
           VM_USER: ${{ vars.VM_USER }}
         run: |
-          ssh -i ~/.ssh/hello_world_ci_ed25519 \
+          ssh -i ~/.ssh/github-keys/github_worker_ed25519 \
             -o StrictHostKeyChecking=accept-new \
             "${VM_USER}@${VM_HOST}" \
             "chmod +x /home/${VM_USER}/deploy.sh && \
